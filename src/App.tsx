@@ -101,6 +101,20 @@ export default function App() {
           </div>
         )}
       </main>
+
+      <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 border-t border-f1border text-center text-xs text-gray-600">
+        Privates Projekt &ndash; kein offizielles Produkt von Formula One Management Ltd. oder der FIA.
+        F1-Daten bereitgestellt von der{' '}
+        <a
+          href="https://api.jolpi.ca/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-gray-400 underline transition-colors"
+        >
+          Jolpica F1 API
+        </a>
+        .
+      </footer>
     </div>
   )
 }
