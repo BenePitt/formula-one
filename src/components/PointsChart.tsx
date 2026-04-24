@@ -12,7 +12,7 @@ import type { Race, DriverQuota, DriverStanding, ChartView } from '../types'
 import { buildDriverChartData, buildTeamChartData, buildFreundeChartData } from '../utils/calculations'
 import { getTeamColor, getTeamColorByName } from '../utils/colors'
 
-const VIEWS: { id: ChartView; label: string }[] = [
+const ALL_VIEWS: { id: ChartView; label: string }[] = [
   { id: 'drivers', label: 'Alle Fahrer' },
   { id: 'teams', label: 'Teams' },
   { id: 'freunde', label: 'Freunde-Pkt.' },
@@ -22,10 +22,14 @@ interface Props {
   races: Race[]
   quotas: DriverQuota[]
   standings: DriverStanding[]
+  hasQuotas: boolean
 }
 
-export function PointsChart({ races, quotas, standings }: Props) {
+export function PointsChart({ races, quotas, standings, hasQuotas }: Props) {
   const [view, setView] = useState<ChartView>('drivers')
+
+  const views = ALL_VIEWS.filter((v) => v.id !== 'freunde' || hasQuotas)
+  const activeView = view === 'freunde' && !hasQuotas ? 'drivers' : view
   const [hiddenDrivers, setHiddenDrivers] = useState<Set<string>>(new Set())
   const [hiddenTeams, setHiddenTeams] = useState<Set<string>>(new Set())
   const [hiddenFreunde, setHiddenFreunde] = useState<Set<string>>(new Set())
@@ -57,15 +61,15 @@ export function PointsChart({ races, quotas, standings }: Props) {
     [races, quotas]
   )
 
-  const activeData = view === 'drivers' ? driverData : view === 'teams' ? teamData : freudeData
-  const activeKeys = view === 'drivers' ? driverKeys : view === 'teams' ? teamKeys : freudeKeys
+  const activeData = activeView === 'drivers' ? driverData : activeView === 'teams' ? teamData : freudeData
+  const activeKeys = activeView === 'drivers' ? driverKeys : activeView === 'teams' ? teamKeys : freudeKeys
 
   const hidden =
-    view === 'drivers' ? hiddenDrivers : view === 'teams' ? hiddenTeams : hiddenFreunde
+    activeView === 'drivers' ? hiddenDrivers : activeView === 'teams' ? hiddenTeams : hiddenFreunde
 
   const toggle = (key: string) => {
     const setter =
-      view === 'drivers' ? setHiddenDrivers : view === 'teams' ? setHiddenTeams : setHiddenFreunde
+      activeView === 'drivers' ? setHiddenDrivers : activeView === 'teams' ? setHiddenTeams : setHiddenFreunde
     setter((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
@@ -76,18 +80,18 @@ export function PointsChart({ races, quotas, standings }: Props) {
 
   const showAll = () => {
     const setter =
-      view === 'drivers' ? setHiddenDrivers : view === 'teams' ? setHiddenTeams : setHiddenFreunde
+      activeView === 'drivers' ? setHiddenDrivers : activeView === 'teams' ? setHiddenTeams : setHiddenFreunde
     setter(new Set())
   }
 
   const hideAll = () => {
     const setter =
-      view === 'drivers' ? setHiddenDrivers : view === 'teams' ? setHiddenTeams : setHiddenFreunde
+      activeView === 'drivers' ? setHiddenDrivers : activeView === 'teams' ? setHiddenTeams : setHiddenFreunde
     setter(new Set(activeKeys))
   }
 
   const getColor = (key: string): string => {
-    if (view === 'teams') return teamColorMap[key] ?? '#888'
+    if (activeView === 'teams') return teamColorMap[key] ?? '#888'
     return driverColorMap[key] ?? '#888'
   }
 
@@ -109,12 +113,12 @@ export function PointsChart({ races, quotas, standings }: Props) {
           Punkteverlauf
         </h2>
         <div className="flex gap-1 bg-f1border p-1 rounded-lg">
-          {VIEWS.map((v) => (
+          {views.map((v) => (
             <button
               key={v.id}
               onClick={() => setView(v.id)}
               className={`px-3 py-1 text-xs rounded-md font-semibold transition-all ${
-                view === v.id ? 'bg-f1red text-white' : 'text-gray-400 hover:text-white'
+                activeView === v.id ? 'bg-f1red text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
               {v.label}
@@ -124,14 +128,27 @@ export function PointsChart({ races, quotas, standings }: Props) {
       </div>
 
       {/* Chart */}
-      <ResponsiveContainer width="100%" height={380}>
-        <LineChart data={activeData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+      <ResponsiveContainer width="100%" height={420}>
+        <LineChart data={activeData} margin={{ top: 5, right: 20, bottom: 80, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2f2f3e" />
           <XAxis
             dataKey="raceName"
-            tick={{ fill: '#9ca3af', fontSize: 10 }}
+            tick={({ x, y, payload }) => (
+              <text
+                x={x}
+                y={y}
+                dy={4}
+                fill="#9ca3af"
+                fontSize={10}
+                textAnchor="end"
+                transform={`rotate(-45, ${x}, ${y})`}
+              >
+                {payload.value}
+              </text>
+            )}
             tickLine={false}
             axisLine={{ stroke: '#2f2f3e' }}
+            interval={0}
           />
           <YAxis
             tick={{ fill: '#9ca3af', fontSize: 11 }}
@@ -213,11 +230,6 @@ export function PointsChart({ races, quotas, standings }: Props) {
         </div>
       </div>
 
-      {view === 'freunde' && quotas.length === 0 && (
-        <p className="text-xs text-red-400 text-center">
-          Excel nicht geladen – Freunde_Quote wird nicht angewendet
-        </p>
-      )}
     </div>
   )
 }

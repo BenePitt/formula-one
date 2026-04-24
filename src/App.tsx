@@ -1,35 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { Tab } from './types'
 import { useF1Data } from './hooks/useF1Data'
 import { useFriendsData } from './hooks/useFriendsData'
 import { calcFreundeStandings } from './utils/calculations'
+import { DEFAULT_SEASON } from './utils/seasons'
 import { Header } from './components/Header'
 import { StandingsTable } from './components/StandingsTable'
 import { ConstructorStandingsTable } from './components/ConstructorStandingsTable'
 import { FriendsStandingsTable } from './components/FriendsStandingsTable'
 import { PointsChart } from './components/PointsChart'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'standings', label: '🏁 Fahrerstand' },
-  { id: 'constructors', label: '🏆 Teamstand' },
-  { id: 'friends', label: '🎲 Freunde-Stand' },
-  { id: 'chart', label: '📈 Punkteverlauf' },
-]
-
 export default function App() {
+  const [selectedSeason, setSelectedSeason] = useState(DEFAULT_SEASON)
   const [activeTab, setActiveTab] = useState<Tab>('standings')
-  const { standings, constructorStandings, races, loading, error, lastUpdated, refresh } = useF1Data('2026')
-  const { quotas, loading: quotasLoading, error: quotasError } = useFriendsData()
 
-  useEffect(() => {
-    refresh()
-  }, [refresh])
+  const { standings, constructorStandings, races, loading, error, lastUpdated, refresh } =
+    useF1Data(selectedSeason)
+  const { quotas, hasQuotas, loading: quotasLoading, error: quotasError } =
+    useFriendsData(selectedSeason)
 
   const freudeStandings = calcFreundeStandings(standings, quotas)
 
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'standings', label: '🏁 Fahrerstand' },
+    { id: 'constructors', label: '🏆 Teamstand' },
+    ...(hasQuotas ? [{ id: 'friends' as Tab, label: '🎲 Freunde-Stand' }] : []),
+    { id: 'chart', label: '📈 Punkteverlauf' },
+  ]
+
+  function handleSeasonChange(season: string) {
+    setSelectedSeason(season)
+    setActiveTab('standings')
+  }
+
   return (
     <div className="min-h-screen bg-f1dark">
-      <Header lastUpdated={lastUpdated} loading={loading} onRefresh={refresh} />
+      <Header
+        selectedSeason={selectedSeason}
+        onSeasonChange={handleSeasonChange}
+        lastUpdated={lastUpdated}
+        loading={loading}
+        onRefresh={refresh}
+      />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-4">
         {error && (
@@ -39,7 +51,7 @@ export default function App() {
         )}
 
         <div className="flex flex-wrap gap-2 bg-f1card border border-f1border p-1 rounded-xl w-fit">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -54,7 +66,7 @@ export default function App() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Fahrerweltmeisterschaft 2026
+                Fahrerweltmeisterschaft {selectedSeason}
               </h2>
               <span className="text-xs text-gray-500">{standings.length} Fahrer</span>
             </div>
@@ -66,7 +78,7 @@ export default function App() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Konstrukteursweltmeisterschaft 2026
+                Konstrukteursweltmeisterschaft {selectedSeason}
               </h2>
               <span className="text-xs text-gray-500">{constructorStandings.length} Teams</span>
             </div>
@@ -74,11 +86,11 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'friends' && (
+        {activeTab === 'friends' && hasQuotas && (
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Freunde Wettstand 2026
+                Freunde Wettstand {selectedSeason}
               </h2>
               <span className="text-xs text-gray-500">{freudeStandings.length} Fahrer</span>
             </div>
@@ -91,7 +103,7 @@ export default function App() {
         )}
 
         {activeTab === 'chart' && (
-          <PointsChart races={races} quotas={quotas} standings={standings} />
+          <PointsChart races={races} quotas={quotas} standings={standings} hasQuotas={hasQuotas} />
         )}
 
         {loading && standings.length === 0 && (
