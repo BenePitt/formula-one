@@ -11,6 +11,7 @@ import {
 import type { Race, DriverQuota, DriverStanding, ChartView } from '../types'
 import { buildDriverChartData, buildTeamChartData, buildFreundeChartData } from '../utils/calculations'
 import { getTeamColor, getTeamColorByName } from '../utils/colors'
+import { RaceTable } from './RaceTable'
 
 const ALL_VIEWS: { id: ChartView; label: string }[] = [
   { id: 'drivers', label: 'Alle Fahrer' },
@@ -230,6 +231,7 @@ export function PointsChart({ races, quotas, standings, hasQuotas }: Props) {
         </div>
       </div>
 
+      <RaceTable races={races} view={activeView} quotas={quotas} />
     </div>
   )
 }

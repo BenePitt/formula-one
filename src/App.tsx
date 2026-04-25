@@ -9,10 +9,12 @@ import { StandingsTable } from './components/StandingsTable'
 import { ConstructorStandingsTable } from './components/ConstructorStandingsTable'
 import { FriendsStandingsTable } from './components/FriendsStandingsTable'
 import { PointsChart } from './components/PointsChart'
+import { LegalModal } from './components/LegalModal'
 
 export default function App() {
   const [selectedSeason, setSelectedSeason] = useState(DEFAULT_SEASON)
   const [activeTab, setActiveTab] = useState<Tab>('standings')
+  const [legalView, setLegalView] = useState<'impressum' | 'datenschutz' | null>(null)
 
   const { standings, constructorStandings, races, loading, error, lastUpdated, refresh } =
     useF1Data(selectedSeason)
@@ -114,19 +116,61 @@ export default function App() {
         )}
       </main>
 
-      <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 border-t border-f1border text-center text-xs text-gray-600">
-        Privates Projekt &ndash; kein offizielles Produkt von Formula One Management Ltd. oder der FIA.
-        F1-Daten bereitgestellt von der{' '}
-        <a
-          href="https://api.jolpi.ca/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-gray-400 underline transition-colors"
-        >
-          Jolpica F1 API
-        </a>
-        .
+      <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 border-t border-f1border text-xs text-gray-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Veit-BDS Branding */}
+          <a
+            href="https://veit-bds.de"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}assets/veit-bds-logo.png`}
+              alt="Veit-BDS"
+              className="h-6 w-auto"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
+            <span className="text-gray-500 hover:text-gray-300 transition-colors">
+              Gebaut von <strong className="text-gray-400">Veit-BDS</strong>
+            </span>
+          </a>
+
+          {/* Center: Disclaimer */}
+          <p className="text-center">
+            Privates Projekt &ndash; kein offizielles Produkt von Formula One Management Ltd. oder der FIA.{' '}
+            F1-Daten:{' '}
+            <a
+              href="https://api.jolpi.ca/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-400 underline transition-colors"
+            >
+              Jolpica F1 API
+            </a>
+          </p>
+
+          {/* Legal links */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setLegalView('impressum')}
+              className="hover:text-gray-400 underline transition-colors"
+            >
+              Impressum
+            </button>
+            <button
+              onClick={() => setLegalView('datenschutz')}
+              className="hover:text-gray-400 underline transition-colors"
+            >
+              Datenschutz
+            </button>
+          </div>
+        </div>
       </footer>
+
+      {legalView && (
+        <LegalModal view={legalView} onClose={() => setLegalView(null)} />
+      )}
     </div>
   )
 }
