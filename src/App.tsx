@@ -10,6 +10,7 @@ import { ConstructorStandingsTable } from './components/ConstructorStandingsTabl
 import { FriendsStandingsTable } from './components/FriendsStandingsTable'
 import { PointsChart } from './components/PointsChart'
 import { LegalModal } from './components/LegalModal'
+import { legalData } from './legal/legalData'
 
 export default function App() {
   const [selectedSeason, setSelectedSeason] = useState(DEFAULT_SEASON)
@@ -119,22 +120,36 @@ export default function App() {
       <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 border-t border-f1border text-xs text-gray-600">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Veit-BDS Branding */}
-          <a
-            href="https://veit-bds.de"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <img
-              src={`${import.meta.env.BASE_URL}assets/veit-bds-logo.png`}
-              alt="Veit-BDS"
-              className="h-6 w-auto"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-            />
-            <span className="text-gray-500 hover:text-gray-300 transition-colors">
-              Gebaut von <strong className="text-gray-400">Veit-BDS</strong>
-            </span>
-          </a>
+          {legalData.website ? (
+            <a
+              href={legalData.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <img
+                src={`${import.meta.env.BASE_URL}assets/veit-bds-logo.png`}
+                alt="Veit-BDS"
+                className="h-6 w-auto"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+              />
+              <span className="text-gray-500 hover:text-gray-300 transition-colors">
+                Gebaut von <strong className="text-gray-400">Veit-BDS</strong>
+              </span>
+            </a>
+          ) : (
+            <div className="flex items-center gap-2">
+              <img
+                src={`${import.meta.env.BASE_URL}assets/veit-bds-logo.png`}
+                alt="Veit-BDS"
+                className="h-6 w-auto"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+              />
+              <span className="text-gray-500">
+                Gebaut von <strong className="text-gray-400">Veit-BDS</strong>
+              </span>
+            </div>
+          )}
 
           {/* Center: Disclaimer */}
           <p className="text-center">
@@ -151,20 +166,22 @@ export default function App() {
           </p>
 
           {/* Legal links */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setLegalView('impressum')}
-              className="hover:text-gray-400 underline transition-colors"
-            >
-              Impressum
-            </button>
-            <button
-              onClick={() => setLegalView('datenschutz')}
-              className="hover:text-gray-400 underline transition-colors"
-            >
-              Datenschutz
-            </button>
-          </div>
+          {(legalData.name || legalData.email) && (
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setLegalView('impressum')}
+                className="hover:text-gray-400 underline transition-colors"
+              >
+                Impressum
+              </button>
+              <button
+                onClick={() => setLegalView('datenschutz')}
+                className="hover:text-gray-400 underline transition-colors"
+              >
+                Datenschutz
+              </button>
+            </div>
+          )}
         </div>
       </footer>
 
